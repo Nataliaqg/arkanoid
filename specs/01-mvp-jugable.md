@@ -1,6 +1,6 @@
 # SPEC 01 — MVP jugable de Arkanoid
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** Ninguna (usa `assets/spritesheet.js` y `assets/sounds/` ya existentes)
 > **Date:** 2026-10-01
 > **Objective:** Un Arkanoid de un solo nivel, jugable en el navegador con teclado o mouse, con vidas, puntaje, pausa, sonidos y animación de explosión.
