@@ -1,7 +1,7 @@
 html, body {
   margin: 0;
   height: 100%;
-  background: #111;
+  background: #0f2340;
 }
 
 body {
@@ -11,6 +11,7 @@ body {
 }
 
 canvas {
-  background: #000;
+  background: #1f3d68;
   display: block;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
 }

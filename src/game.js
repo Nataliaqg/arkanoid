@@ -20,7 +20,18 @@ const sounds = {
   break: new Audio('assets/sounds/break-sound.mp3'),
 };
 
+const SOUND_BTN = { x: W / 2 - 150, y: H / 2 + 40, w: 300, h: 44 };
+
+let soundOn = true;
+try { soundOn = localStorage.getItem('arkanoid-sound') !== 'off'; } catch (e) {}
+
+function toggleSound() {
+  soundOn = !soundOn;
+  try { localStorage.setItem('arkanoid-sound', soundOn ? 'on' : 'off'); } catch (e) {}
+}
+
 function playSound(name) {
+  if (!soundOn) return;
   const clone = sounds[name].cloneNode();   // permite solapar reproducciones
   clone.play().catch(() => {});
 }
@@ -102,11 +113,24 @@ document.addEventListener('keydown', (e) => {
     if (state.mode === 'playing') state.mode = 'paused';
     else if (state.mode === 'paused') state.mode = 'playing';
   }
+  if ((e.code === 'KeyS' || e.code === 'KeyM') && !e.repeat && state.mode === 'paused') {
+    toggleSound();
+  }
   if (e.code === 'Enter' && (state.mode === 'gameover' || state.mode === 'won')) {
     resetGame();
   }
 });
-canvas.addEventListener('click', launchBall);
+canvas.addEventListener('click', (e) => {
+  if (state.mode === 'paused') {
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * (W / rect.width);
+    const y = (e.clientY - rect.top) * (H / rect.height);
+    if (x >= SOUND_BTN.x && x <= SOUND_BTN.x + SOUND_BTN.w &&
+        y >= SOUND_BTN.y && y <= SOUND_BTN.y + SOUND_BTN.h) toggleSound();
+    return;
+  }
+  launchBall();
+});
 document.addEventListener('keyup', (e) => setKey(e.code, false));
 
 canvas.addEventListener('mousemove', (e) => {
@@ -209,8 +233,13 @@ function update(dt) {
   }
 }
 
+const bgGradient = ctx.createLinearGradient(0, 0, 0, H);
+bgGradient.addColorStop(0, '#2a4d7f');
+bgGradient.addColorStop(1, '#1a3358');
+const OVERLAY = 'rgba(12, 28, 56, 0.7)';
+
 function draw() {
-  ctx.fillStyle = '#000';
+  ctx.fillStyle = bgGradient;
   ctx.fillRect(0, 0, W, H);
 
   for (const b of state.blocks) {
@@ -238,17 +267,29 @@ function draw() {
   drawSprite(ctx, 'paddle', p.x, p.y, p.w, p.h);
 
   if (state.mode === 'paused') {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillStyle = OVERLAY;
     ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = 'bold 48px monospace';
-    ctx.fillText('PAUSA', W / 2, H / 2);
+    ctx.fillText('PAUSA', W / 2, H / 2 - 20);
+
+    const s = SOUND_BTN;
+    ctx.fillStyle = soundOn ? 'rgba(80, 200, 120, 0.25)' : 'rgba(230, 90, 90, 0.25)';
+    ctx.fillRect(s.x, s.y, s.w, s.h);
+    ctx.strokeStyle = soundOn ? '#6fdc8c' : '#f08080';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(s.x, s.y, s.w, s.h);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 20px monospace';
+    ctx.fillText('SONIDO: ' + (soundOn ? 'ACTIVADO' : 'DESACTIVADO'), W / 2, s.y + s.h / 2);
+    ctx.font = '14px monospace';
+    ctx.fillText('S o clic para cambiar · P para continuar', W / 2, s.y + s.h + 28);
   }
 
   if (state.mode === 'gameover' || state.mode === 'won') {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillStyle = OVERLAY;
     ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
